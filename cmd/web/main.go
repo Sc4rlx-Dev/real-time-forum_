@@ -18,8 +18,6 @@ func main() {
 	}
 
 	fmt.Println("Server is starting on http://localhost:8081")
-
-	// Start the server and log any errors that occur.
 	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatal("Server failed to start:", err)
