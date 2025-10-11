@@ -6,6 +6,7 @@ import (
     "net/http"
     "os"
     rp "real_time_forum/internal/repository"
+    "real_time_forum/internal/router"
 )
 
 func main() {
@@ -18,19 +19,17 @@ func main() {
     if err != nil {
         log.Fatal("Failed to open database:", err)
     }
-	
-	if err := rp.CreateTables(db); err != nil {
-		log.Fatal("Failed to create tables:", err)
-	}
+    
+    if err := rp.CreateTables(db); err != nil {
+        log.Fatal("Failed to create tables:", err)
+    }
+    fmt.Println("Database setup completed successfully!")
 
-    mux := http.NewServeMux()
-    mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        fmt.Fprintln(w, "Server is running!")
-    })
+    appRouter := router.NewRouter(db)
 
     server := &http.Server{
         Addr:    ":8081",
-        Handler: mux,
+        Handler: appRouter,
     }
 
     fmt.Println("Server is starting on http://localhost:8081")
