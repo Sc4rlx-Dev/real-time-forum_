@@ -35,4 +35,29 @@ func get_all_posts(db *sql.DB) ([]models.Post, error) {
 		}
 		posts = append(posts, post)
 	}
+	//for each post -> fetch its commants
+	for i := range posts {
+		c_r, err := db.Query(`
+			SELECT c.content, u.username, c.created_at
+			FROM comments c
+			JOIN users u ON c.user_id = u.id
+			WHERE c.post_id = ?
+			ORDER BY c.created_at ASC`, posts[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		defer c_r.Close()
+
+		var comments []models.Comment
+		for c_r.Next() {
+			var comment models.Comment
+			if err := c_r.Scan(&comment.Content, &comment.Username, &comment.CreatedAt); err != nil {
+				return nil, err
+			}
+			comments = append(comments, comment)
+		}
+		posts[i].Comments = comments
+	}
+
+	return posts, nil	
 }
