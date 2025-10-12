@@ -14,3 +14,19 @@ type Data struct {
     Username string 
     Password string
 }
+
+type Post struct {
+    ID        int
+    Title     string
+    Content   string
+    Category  string
+    Username  string    
+    CreatedAt string
+    Comments  []Comment 
+}
+
+type Comment struct {
+    Content   string
+    Username  string 
+    CreatedAt string
+}
