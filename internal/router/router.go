@@ -11,6 +11,9 @@ func NewRouter(db *sql.DB) http.Handler {
     authHandler := &handler.AuthHandler{DB: db}
     m.HandleFunc("/register", authHandler.Register)
     m.HandleFunc("/login", authHandler.Login)
+	mux.HandleFunc("/posts/create", postHandler.authMiddleware(postHandler.CreatePost))
+	mux.HandleFunc("/comments/add", postHandler.authMiddleware(postHandler.CreateComment))
+	mux.HandleFunc("/posts", postHandler.GetPosts)
 
 return m
 }
