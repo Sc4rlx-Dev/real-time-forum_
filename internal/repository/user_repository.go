@@ -21,14 +21,22 @@ func Insert_user(db *sql.DB , usr *models.UserData) error{
     return nil
 }
 
-func Auth_user(db *sql.DB, logindata *models.Data) (int, error){
-	var store_pass string
-	var user_id int
+func Auth_user(db *sql.DB, logindata *models.Data) (int, error) {
+    var store_pass string
+    var user_id int
 
-	err := db.QueryRow("SELECT id , password FROM users WHERE username = ? OR email = ?" ,
-	logindata.Username , logindata.Password).Scan(&user_id , &store_pass)
-	if err != nil { return 0, errors.New("invalid password")}
-	return user_id , nil
+    err := db.QueryRow("SELECT id, password FROM users WHERE username = ? OR email = ?",
+        logindata.Username, logindata.Username).Scan(&user_id, &store_pass)
+    if err != nil {
+        return 0, errors.New("user not found")
+    }
+
+    err = bcrypt.CompareHashAndPassword([]byte(store_pass), []byte(logindata.Password))
+    if err != nil {
+        return 0, errors.New("invalid password")
+    }
+
+    return user_id, nil
 }
 
 func Create_session(db *sql.DB , user_id int , username string) (string, error){
