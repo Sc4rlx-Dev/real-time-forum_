@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-    //  <---DATABASE INIT---->
     if err := os.MkdirAll("storage", os.ModePerm); err != nil {
         log.Fatalf("Failed to create storage directory: %v", err)
     }
@@ -25,11 +24,11 @@ func main() {
     }
     fmt.Println("Database setup completed successfully!")
 
-    appRouter := router.NewRouter(db)
+    app_router := router.New_router(db)
 
     server := &http.Server{
         Addr:    ":8081",
-        Handler: appRouter,
+        Handler: app_router,
     }
 
     fmt.Println("Server is starting on http://localhost:8081")

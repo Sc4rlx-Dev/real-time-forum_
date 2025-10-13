@@ -1,5 +1,11 @@
 module real_time_forum
 
-go 1.22.3
+go 1.24.0
 
-require github.com/mattn/go-sqlite3 v1.14.32
+toolchain go1.24.8
+
+require (
+	github.com/gofrs/uuid v4.4.0+incompatible
+	github.com/mattn/go-sqlite3 v1.14.32
+	golang.org/x/crypto v0.43.0
+)

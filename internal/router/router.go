@@ -6,15 +6,17 @@ import (
     "real_time_forum/internal/handler"
 )
 
-func NewRouter(db *sql.DB) http.Handler {
+func New_router(db *sql.DB) http.Handler {
     m := http.NewServeMux()
-    authHandler := &handler.AuthHandler{DB: db}
-    postHandler := &handler.PostHandler{DB: db}
-    m.HandleFunc("/register", authHandler.Register)
-    m.HandleFunc("/login", auth.Login)
-    m.HandleFunc("/posts/create", postHandler.authMiddleware(postHandler.CreatePost))
-    m.HandleFunc("/comments/add", postHandler.authMiddleware(postHandler.CreateComment))
-    m.HandleFunc("/posts", postHandler.GetPosts)
 
-return m
+    auth_h := &handler.Auth_handler{DB: db}
+    post_h := &handler.Post_handler{DB: db}
+
+    m.HandleFunc("/register", auth_h.Register)
+    m.HandleFunc("/login", auth_h.Login)
+    m.HandleFunc("/posts/create", post_h.Auth_middleware(post_h.Create_post))
+    m.HandleFunc("/comments/add", post_h.Auth_middleware(post_h.Create_comment))
+    m.HandleFunc("/posts", post_h.Get_posts)
+
+    return m
 }

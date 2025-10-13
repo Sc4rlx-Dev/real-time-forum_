@@ -1,13 +1,13 @@
 package models
 
-type UserData struct {
-    Username  string
-    FirstName string
-    LastName  string
-    Age       int
-    Email     string
-    Password  string
-    Gender    string
+type User_data struct {
+    Username   string
+    First_name string
+    Last_name  string
+    Age        int
+    Email      string
+    Password   string
+    Gender     string
 }
 
 type Data struct {
@@ -16,17 +16,17 @@ type Data struct {
 }
 
 type Post struct {
-    ID        int
-    Title     string
-    Content   string
-    Category  string
-    Username  string    
-    CreatedAt string
-    Comments  []Comment 
+    ID         int
+    Title      string
+    Content    string
+    Category   string
+    Username   string    
+    Created_at string
+    Comments   []Comment 
 }
 
 type Comment struct {
-    Content   string
-    Username  string 
-    CreatedAt string
+    Content    string
+    Username   string 
+    Created_at string
 }

@@ -5,37 +5,42 @@ import (
 	"real_time_forum/internal/models"
 )
 
-func InsertPost(db *sql.DB, title, content, category string, user_id int) error {
+// Corrected: Capitalized to make it public
+func Insert_post(db *sql.DB, title, content, category string, user_id int) error {
 	_, err := db.Exec(
 		`INSERT INTO posts (title, content, category, user_id) VALUES (?, ?, ?, ?)`,
 		title, content, category, user_id)
 	return err
 }
 
-func InsertComment(db *sql.DB, content string, user_id, post_id int) error {
+// Corrected: Capitalized to make it public
+func Insert_comment(db *sql.DB, content string, user_id, post_id int) error {
 	_, err := db.Exec(`
 		INSERT INTO comments (content, user_id, post_id) VALUES (?, ?, ?)`,
 		content, user_id, post_id)
 	return err
 }
 
-func GetAllPosts(db *sql.DB) ([]models.Post, error) {
-	rows,err:= db.Query(`SELECT p.id, p.title, p.content, p.category, u.username, p.created_at
+// Corrected: Capitalized to make it public
+func Get_all_posts(db *sql.DB) ([]models.Post, error) {
+	rows, err := db.Query(`SELECT p.id, p.title, p.content, p.category, u.username, p.created_at
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		ORDER BY p.created_at DESC`)
-	if err != nil { return nil, err }
+	if err != nil { 
+        return nil, err 
+    }
 	defer rows.Close()
 
-	var posts []models
+	var posts []models.Post
 	for rows.Next() {
-		var post models.Post
-		if err := rows.Scan(&post.ID, &post.Title, &post.Content, &post.Category, &post.Username, &post.CreatedAt); err != nil {
+		var p models.Post
+		if err := rows.Scan(&p.ID, &p.Title, &p.Content, &p.Category, &p.Username, &p.Created_at); err != nil {
 			return nil, err
 		}
-		posts = append(posts, post)
+		posts = append(posts, p)
 	}
-	//for each post -> fetch its commants
+
 	for i := range posts {
 		c_r, err := db.Query(`
 			SELECT c.content, u.username, c.created_at
@@ -50,11 +55,11 @@ func GetAllPosts(db *sql.DB) ([]models.Post, error) {
 
 		var comments []models.Comment
 		for c_r.Next() {
-			var comment models.Comment
-			if err := c_r.Scan(&comment.Content, &comment.Username, &comment.CreatedAt); err != nil {
+			var c models.Comment
+			if err := c_r.Scan(&c.Content, &c.Username, &c.Created_at); err != nil {
 				return nil, err
 			}
-			comments = append(comments, comment)
+			comments = append(comments, c)
 		}
 		posts[i].Comments = comments
 	}

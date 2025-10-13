@@ -7,24 +7,24 @@ import (
 	"real_time_forum/internal/repository"
 )
 
-type PostHandler struct {
+type Post_handler struct {
 	DB *sql.DB
 }
 
-func (h *PostHandler) authMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func (h *Post_handler) Auth_middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set("X-User-ID", "1")
 		next.ServeHTTP(w, r)
 	}
 }
 
-func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
+func (h *Post_handler) Create_post(w http.ResponseWriter, r *http.Request) {
 	title := "test post"
-	content := "hhhhhhhhhhhhhhhhhhhhhhh"
+	content := "This is the post content."
 	category := "test category"
-	userID := 1
+	user_id := 1
 
-	err := repository.InsertPost(h.DB, title, content, category, userID)
+	err := repository.Insert_post(h.DB, title, content, category, user_id)
 	if err != nil {
 		http.Error(w, "Failed to create post", http.StatusInternalServerError)
 		return
@@ -33,12 +33,12 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "Post created successfully"})
 }
 
-func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
+func (h *Post_handler) Create_comment(w http.ResponseWriter, r *http.Request) {
 	content := "This is a great comment!"
-	userID := 1
-	postID := 1
+	user_id := 1
+	post_id := 1
 
-	err := repository.InsertComment(h.DB, content, userID, postID)
+	err := repository.Insert_comment(h.DB, content, user_id, post_id)
 	if err != nil {
 		http.Error(w, "Failed to add comment", http.StatusInternalServerError)
 		return
@@ -47,8 +47,8 @@ func (h *PostHandler) CreateComment(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "Comment added successfully"})
 }
 
-func (h *PostHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
-	posts, err := repository.GetAllPosts(h.DB)
+func (h *Post_handler) Get_posts(w http.ResponseWriter, r *http.Request) {
+	posts, err := repository.Get_all_posts(h.DB)
 	if err != nil {
 		http.Error(w, "Failed to retrieve posts", http.StatusInternalServerError)
 		return
