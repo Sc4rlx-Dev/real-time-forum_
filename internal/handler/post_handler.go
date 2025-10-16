@@ -36,11 +36,16 @@ func (h *Post_handler) Create_post(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Post_handler) Create_comment(w http.ResponseWriter, r *http.Request) {
-	content := "This is a great comment!"
-	user_id := 1
-	post_id := 1
+    var data map[string]string
+    if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+        http.Error(w, "Invalid request body", http.StatusBadRequest)
+        return
+    }
 
-	err := repository.Insert_comment(h.DB, content, user_id, post_id)
+    user_id, _ := strconv.Atoi(r.Header.Get("X-User-ID"))
+    post_id, _ := strconv.Atoi(data["post_id"])
+
+	err := repository.Insert_comment(h.DB, data["content"], user_id, post_id)
 	if err != nil {
 		http.Error(w, "Failed to add comment", http.StatusInternalServerError)
 		return
