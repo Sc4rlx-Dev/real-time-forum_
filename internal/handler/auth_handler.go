@@ -1,11 +1,12 @@
 package handler
 
 import (
-    "database/sql"
-    "encoding/json"
-    "net/http"
-    "real_time_forum/internal/models"
-    "real_time_forum/internal/repository"
+	"database/sql"
+	"encoding/json"
+	"net/http"
+	"real_time_forum/internal/models"
+	"real_time_forum/internal/repository"
+	"strconv"
 )
 
 type Auth_handler struct {
@@ -13,16 +14,21 @@ type Auth_handler struct {
 }
 
 func (h *Auth_handler) Register(w http.ResponseWriter, r *http.Request) {
-    // Corrected: Merged declaration and assignment
-	user_data := models.User_data{
-		Username:   "test",
-		First_name: "Test",
-        Last_name:  "User",
-        Age:        23,
-        Email:      "test@example.com",
-        Password:   "password123",
-        Gender:     "Male",
+
+    if err := r.ParseForm(); err != nil { http.Error(w,  "Failed to parse form" , http.StatusBadRequest) ; return}
+
+    age, _ := strconv.Atoi(r.FormValue("Age"))
+
+    user_data := models.User_data{
+		Username:   r.FormValue("Username"),
+		First_name: r.FormValue("First_name"),
+		Last_name:  r.FormValue("Last_name"),
+		Age:        age,
+		Email:      r.FormValue("Email"),
+		Password:   r.FormValue("Password"),
+		Gender:     r.FormValue("Gender"),
 	}
+
 	err := repository.Insert_user(h.DB, &user_data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -33,27 +39,33 @@ func (h *Auth_handler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Auth_handler) Login(w http.ResponseWriter, r *http.Request) {
-    login_data := models.Data{
-        Username: "test",
-        Password: "password123",
-    }
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		return
+	}
 
-    user_id, err := repository.Auth_user(h.DB, &login_data)
-    if err != nil {
-        http.Error(w, "Invalid credentials", http.StatusUnauthorized)
-        return
-    }
+	login_data := models.Data{
+		Username: r.FormValue("username"),
+		Password: r.FormValue("password"),
+	}
 
-    session_token, err := repository.Create_session(h.DB, user_id, login_data.Username)
-    if err != nil {
-        http.Error(w, "Failed to create session", http.StatusInternalServerError)
-        return
-    }
+	user_id, err := repository.Auth_user(h.DB, &login_data)
+	if err != nil {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
 
-    http.SetCookie(w, &http.Cookie{
-        Name:     "session_token",
-        Value:    session_token,
-        HttpOnly: true,
-    })
-    json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully"})
+	session_token, err := repository.Create_session(h.DB, user_id, login_data.Username)
+	if err != nil {
+		http.Error(w, "Failed to create session", http.StatusInternalServerError)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_token",
+		Value:    session_token,
+		Path:     "/",
+		HttpOnly: true,
+	})
+	json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully"})
 }
