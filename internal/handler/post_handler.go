@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"real_time_forum/internal/repository"
+	"strconv"
 )
 
 type Post_handler struct {
@@ -19,12 +20,13 @@ func (h *Post_handler) Auth_middleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func (h *Post_handler) Create_post(w http.ResponseWriter, r *http.Request) {
-	title := "test post"
-	content := "This is the post content."
-	category := "test category"
-	user_id := 1
-
-	err := repository.Insert_post(h.DB, title, content, category, user_id)
+    var data map[string]string
+    if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+        http.Error(w, "Invalid request body", http.StatusBadRequest)
+        return
+    }
+    user_id, _ := strconv.Atoi(r.Header.Get("X-User-ID"))
+	err := repository.Insert_post(h.DB, data["title"], data["content"], data["category"], user_id)
 	if err != nil {
 		http.Error(w, "Failed to create post", http.StatusInternalServerError)
 		return
