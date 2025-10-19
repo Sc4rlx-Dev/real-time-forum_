@@ -24,7 +24,7 @@ func main() {
     }
     fmt.Println("Database setup completed successfully!")
 
-    app_router := router.New_router(db)
+    app_router := router.New_Router(db)
 
     server := &http.Server{
         Addr:    ":8081",
