@@ -1,27 +1,33 @@
-// console.log("tesstttt")
+import { render_login_form, render_home_page, render_posts } from './ui.js';
+import { check_auth_status, login_user, get_posts } from './api.js';
 
-import { render_login_form, render_home_page } from './ui.js';
-import { check_auth_status, login_user } from './api.js';
+async function main() {
+    const is_logged_in = await check_auth_status();
 
-async function main(){
-    const is_logged_in = await check_auth_status()
-    if(is_logged_in){
-        show_home_page()
-    }else{show_login_page()}
+    if (is_logged_in) {
+        show_home_page();
+    } else {
+        show_login_page();
+    }
 }
 
-function show_home_page(){
-    render_home_page()
+async function show_home_page() {
+    render_home_page();
+    const posts = await get_posts();
+    render_posts(posts);
 }
 
-function show_login_page(){
+function show_login_page() {
     render_login_form(async (form_data) => {
-        const sucss = await login_user(form_data)
-        if(sucss){
-            show_home_page
-        }else{alert('wa  l3adeeew')}
+        const success = await login_user(form_data);
+        if (success) {
+            show_home_page();
+        } else {
+            alert('Login failed! Please try again.');
+        }
     }, () => {
-        alert('registration soon..')
-    })
+        alert('Registration form coming soon!');
+    });
 }
-main()
+
+main();

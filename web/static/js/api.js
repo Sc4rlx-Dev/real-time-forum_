@@ -18,3 +18,18 @@ export async function login_user(form_data) {
         return false
     }
 }
+
+export async function get_posts() {
+    try {
+        const response = await fetch('/api/posts');
+        if (!response.ok) {
+            console.error('Failed to fetch posts:', response.statusText);
+            return []; 
+        }
+        const posts = await response.json();
+        return posts || [];
+    } catch (error) {
+        console.error('Error fetching posts:', error);
+        return [];
+    }
+}
