@@ -30,3 +30,11 @@ type Comment struct {
     Username   string 
     Created_at string
 }
+type Message struct {
+    ID      string `json:"id"`
+    Message string `json:"message"`
+    From    string `json:"from"` 
+    To      string `json:"to"`  
+    Date    string `json:"date"` 
+    Type    string `json:"type"` 
+}
