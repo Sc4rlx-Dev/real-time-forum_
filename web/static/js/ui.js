@@ -42,9 +42,55 @@ export function render_login_form(on_login , on_switch_to_register){
 
 document.body.append(c)
 }
+export function render_posts(posts_data) {
+    const posts_container = document.getElementById('posts-container');
+    if (!posts_container) return;
 
-export function render_home_page(){
-    document.body.innerHTML = ''
-    const tittle = create_element('h1' , '' , 'Mer7ba biiiiiiik !!')
-    document.body.append(tittle)
+    posts_container.innerHTML = '';
+
+    if (!posts_data || posts_data.length === 0) {
+        posts_container.append(create_element('p', 'no-posts', 'No posts yet!'));
+        return;
+    }
+
+    posts_data.forEach(post => {
+        const post_element = create_element('article', 'post');
+
+        const title = create_element('h2', 'post-title', post.Title);
+        const meta = create_element('p', 'post-meta', `Posted by ${post.Username} in ${post.Category} on ${post.Created_at}`);
+        const content = create_element('p', 'post-content', post.Content);
+
+        const comments_section = create_element('div', 'comments-section');
+        const comments_title = create_element('h3', 'comments-title', 'Comments');
+        comments_section.append(comments_title);
+
+        if (post.Comments && post.Comments.length > 0) {
+            post.Comments.forEach(comment => {
+                const comment_element = create_element('div', 'comment');
+                const comment_meta = create_element('p', 'comment-meta', `Comment by ${comment.Username} on ${comment.Created_at}`);
+                const comment_content = create_element('p', 'comment-content', comment.Content);
+                comment_element.append(comment_meta, comment_content);
+                comments_section.append(comment_element);
+            });
+        } else {
+            comments_section.append(create_element('p', 'no-comments', 'No comments yet.'));
+        }
+
+        post_element.append(title, meta, content, comments_section);
+        posts_container.append(post_element);
+    });
+}
+
+export function render_home_page() {
+    document.body.innerHTML = '';
+    document.body.className = 'home-layout';
+
+    const main_container = create_element('div', 'main-container');
+    const page_title = create_element('h1', 'page-title', 'Forum Posts');
+    
+    const posts_container = create_element('div', 'posts-list');
+    posts_container.id = 'posts-container';
+
+    main_container.append(page_title, posts_container);
+    document.body.append(main_container);
 }
