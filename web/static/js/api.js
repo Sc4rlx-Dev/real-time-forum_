@@ -1,38 +1,46 @@
-// Checks if the user is authenticated by looking for a session token in cookies.
 export async function check_auth_status() {
     return document.cookie.includes('session_token=');
 }
 
-// Sends the login form data to the backend.
 export async function login_user(form_data) {
     try {
+        // Convert FormData to URLSearchParams for application/x-www-form-urlencoded
+        const params = new URLSearchParams(form_data);
         const response = await fetch('/api/login', {
             method: 'POST',
-            body: form_data,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params,
         });
-        return response.ok;
+        if (response.ok) {
+            const data = await response.json();
+            return { success: true, username: data.username };
+        }
+        return { success: false };
     } catch (error) { 
         console.error('Login failed:', error);
-        return false;
+        return { success: false };
     }
 }
-// --------------------
 
-// --- NEW FUNCTION ---
-// Sends the registration form data to the backend.
 export async function register_user(form_data) {
     try {
+        // Convert FormData to URLSearchParams for application/x-www-form-urlencoded
+        const params = new URLSearchParams(form_data);
         const response = await fetch('/api/register', {
             method: 'POST',
-            body: form_data,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params,
         });
-        return response.ok; // Returns true if registration was successful
+        return response.ok;
     } catch (error) {
         console.error('Registration failed:', error);
         return false;
     }
 }
-// --------------------
 
 export async function get_posts() {
     try {
@@ -82,11 +90,54 @@ export async function get_chat_history(username) {
 
 
 export function get_cookie(name) {
-  const cookies = document.cookie.split(";").map(c => c.trim());
-  for (const cookie of cookies) {
-    if (cookie.startsWith(name + "=")) {
-      return cookie.substring(name.length + 1);
+    const cookies = document.cookie.split(";").map(c => c.trim());
+    for (const cookie of cookies) {
+        if (cookie.startsWith(name + "=")) {
+            return cookie.substring(name.length + 1);
+        }
     }
-  }
-  return null
+    return null;
+}
+
+export async function create_post(post_data) {
+    try {
+        const response = await fetch('/api/posts/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(post_data),
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error creating post:', error);
+        return false;
+    }
+}
+
+export async function add_comment(post_id, content) {
+    try {
+        const response = await fetch('/api/comments/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                post_id: post_id.toString(),
+                content: content,
+            }),
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Error adding comment:', error);
+        return false;
+    }
+}
+
+export async function logout_user() {
+    // Clear session cookies by setting expiry to past date
+    // Note: These are being deleted, so SSL encryption is not required for clearing
+    document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict';
+    document.cookie = 'username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict';
+    return true;
 }

@@ -5,7 +5,11 @@ import {
     render_user_list,
     render_chat_window,
     append_message,
-    render_register_form // --- ADDED
+    render_register_form,
+    render_create_post_modal,
+    show_notification,
+    show_loading,
+    hide_loading
 } from './ui.js';
 import { 
     check_auth_status, 
@@ -14,7 +18,10 @@ import {
     get_users,
     get_chat_history,
     get_cookie,
-    register_user // --- ADDED
+    register_user,
+    create_post,
+    add_comment,
+    logout_user
 } from './api.js';
 import {
     connect_websocket,
@@ -44,10 +51,12 @@ async function main() {
 }
 
 async function show_home_page() {
-    render_home_page();
+    render_home_page(current_username, handle_logout, handle_create_post);
     
+    show_loading();
     const posts = await get_posts();
-    render_posts(posts);
+    hide_loading();
+    render_posts(posts, handle_add_comment);
 
     all_users = await get_users();
     render_user_list(all_users, online_users, on_user_click);
@@ -60,50 +69,66 @@ async function show_home_page() {
 
 function show_login_page() {
     render_login_form(async (form_data) => {
-        const success = await login_user(form_data);
-        if (success) {
-            // --- THIS IS THE FIX ---
-            // Read the "username" cookie, which is visible to JavaScript.
-            current_username = get_cookie("session_token");
-            // ---------------------
-            console.log("currrrrr",current_username , typeof current_username)
-            if (current_username) {
-                show_home_page();
-            } else {
-                // This alert should no longer appear
-                alert('Login successful, but cookie was not set.');
-            }
+        const result = await login_user(form_data);
+        if (result.success) {
+            current_username = result.username;
+            show_notification('Login successful!', 'success');
+            show_home_page();
         } else {
-            alert('Login failed! Please try again.');
+            show_notification('Login failed! Please check your credentials.', 'error');
         }
     }, () => {
-        // Switch to the register page instead of showing an alert
         show_register_page();
-        // ---------------
     });
 }
 
-// --- NEW FUNCTION ---
-// Renders the register page and handles form submission
 function show_register_page() {
     render_register_form(async (form_data) => {
-        // This is the on_register callback
         const success = await register_user(form_data);
         if (success) {
-            alert('Registration successful! Please log in.');
-            show_login_page(); // Go back to login page
+            show_notification('Registration successful! Please log in.', 'success');
+            show_login_page();
         } else {
-            alert('Registration failed. Please try again.');
+            show_notification('Registration failed. Username or email may already exist.', 'error');
         }
     }, () => {
-        // This is the on_switch_to_login callback
-        show_login_page(); // Go back to login page
+        show_login_page();
     });
 }
-// --------------------
 
+async function handle_logout() {
+    await logout_user();
+    show_notification('Logged out successfully', 'info');
+    window.location.reload();
+}
 
-// --- CHAT LOGIC ---
+function handle_create_post() {
+    render_create_post_modal(async (post_data) => {
+        show_loading();
+        const success = await create_post(post_data);
+        hide_loading();
+        
+        if (success) {
+            show_notification('Post created successfully!', 'success');
+            const posts = await get_posts();
+            render_posts(posts, handle_add_comment);
+        } else {
+            show_notification('Failed to create post. Please try again.', 'error');
+        }
+    }, () => {});
+}
+
+async function handle_add_comment(post_id, content, post_element) {
+    const success = await add_comment(post_id, content);
+    
+    if (success) {
+        show_notification('Comment added successfully!', 'success');
+        const posts = await get_posts();
+        render_posts(posts, handle_add_comment);
+    } else {
+        show_notification('Failed to add comment. Please try again.', 'error');
+    }
+}
 
 async function on_user_click(username) {
     current_chat_with = username;
@@ -124,6 +149,7 @@ function handle_incoming_message(msg) {
         append_message(msg, current_username);
     } else {
         console.log(`Received message from ${msg.From_username}, but not in active chat.`);
+        show_notification(`New message from ${msg.From_username}`, 'info');
     }
 }
 
@@ -132,5 +158,4 @@ function handle_user_list_update(new_online_users) {
     render_user_list(all_users, online_users, on_user_click);
 }
 
-// Start the application.
 main();
