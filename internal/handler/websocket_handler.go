@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/gorilla/websocket"
 	"real_time_forum/internal/models"
 	"real_time_forum/internal/repository"
-	"github.com/gorilla/websocket"
 )
 
 var upgrader = websocket.Upgrader{
@@ -33,12 +33,10 @@ func Broadcast_user_list() {
 		online_users = append(online_users, user)
 	}
 
-	// --- FIX: Use the existing models.Message struct ---
 	msg := models.Message{
 		Type: "user_list",
 		Data: online_users,
 	}
-	// --------------------------------------------------
 
 	for user, conn := range clients {
 		if err := conn.WriteJSON(msg); err != nil {
@@ -49,7 +47,6 @@ func Broadcast_user_list() {
 
 func Ws_handler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// --- UPDATED: Real Session Authentication ---
 		cookie, err := r.Cookie("session_token")
 		if err != nil {
 			log.Println("WebSocket connection rejected: no session cookie")
@@ -63,7 +60,6 @@ func Ws_handler(db *sql.DB) http.HandlerFunc {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		// --- End Auth Update ---
 
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -77,14 +73,14 @@ func Ws_handler(db *sql.DB) http.HandlerFunc {
 		clients_mutex.Unlock()
 		log.Printf("WebSocket client connected: %s", username)
 
-		Broadcast_user_list() // Send updated list on new connection
+		Broadcast_user_list()
 
 		defer func() {
 			clients_mutex.Lock()
 			delete(clients, username)
 			clients_mutex.Unlock()
 			log.Printf("WebSocket client disconnected: %s", username)
-			Broadcast_user_list() // Send updated list on disconnect
+			Broadcast_user_list()
 		}()
 
 		for {
@@ -100,14 +96,11 @@ func Ws_handler(db *sql.DB) http.HandlerFunc {
 				continue
 			}
 
-			// Corrected: Use From_username
 			if msg.From_username != username {
 				log.Printf("Message 'From' field mismatch for user %s. Expected %s, got %s", username, username, msg.From_username)
 				continue
 			}
 
-			// Handle message saving
-			// Corrected: Use To_username
 			receiver_id, err_r := repository.Get_user_id_by_username(db, msg.To_username)
 			if err_r != nil {
 				log.Printf("Could not find receiver ID for %s", msg.To_username)
@@ -120,19 +113,15 @@ func Ws_handler(db *sql.DB) http.HandlerFunc {
 				continue
 			}
 
-			// Forward the message if recipient is online
 			clients_mutex.Lock()
-			// Corrected: Use To_username
 			recipient_conn, is_online := clients[msg.To_username]
 			clients_mutex.Unlock()
 
 			if is_online {
 				if err := recipient_conn.WriteJSON(msg); err != nil {
-					// Corrected: Use To_username
 					log.Printf("Error sending message to %s: %v", msg.To_username, err)
 				}
 			} else {
-				// Corrected: Use To_username
 				log.Printf("Recipient %s is offline. Message saved.", msg.To_username)
 			}
 		}

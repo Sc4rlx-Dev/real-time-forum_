@@ -26,7 +26,7 @@ func (h *Post_handler) Auth_middleware(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
 			return
 		}
-		
+
 		// Add the user ID to the request header for other handlers to use
 		r.Header.Set("X-User-ID", strconv.Itoa(user_id))
 		next.ServeHTTP(w, r)
@@ -34,12 +34,12 @@ func (h *Post_handler) Auth_middleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func (h *Post_handler) Create_post(w http.ResponseWriter, r *http.Request) {
-    var data map[string]string
-    if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-        http.Error(w, "Invalid request body", http.StatusBadRequest)
-        return
-    }
-    user_id, _ := strconv.Atoi(r.Header.Get("X-User-ID"))
+	var data map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	user_id, _ := strconv.Atoi(r.Header.Get("X-User-ID"))
 	err := repository.Insert_post(h.DB, data["title"], data["content"], data["category"], user_id)
 	if err != nil {
 		http.Error(w, "Failed to create post", http.StatusInternalServerError)
@@ -50,14 +50,14 @@ func (h *Post_handler) Create_post(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Post_handler) Create_comment(w http.ResponseWriter, r *http.Request) {
-    var data map[string]string
-    if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-        http.Error(w, "Invalid request body", http.StatusBadRequest)
-        return
-    }
+	var data map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
 
-    user_id, _ := strconv.Atoi(r.Header.Get("X-User-ID"))
-    post_id, _ := strconv.Atoi(data["post_id"])
+	user_id, _ := strconv.Atoi(r.Header.Get("X-User-ID"))
+	post_id, _ := strconv.Atoi(data["post_id"])
 
 	err := repository.Insert_comment(h.DB, data["content"], user_id, post_id)
 	if err != nil {
