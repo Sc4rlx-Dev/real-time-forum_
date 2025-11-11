@@ -6,7 +6,30 @@ import (
 	"real_time_forum/internal/models"
 	"github.com/gofrs/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 )
+
+func Get_all_users(db *sql.DB, current_user_id int) ([]models.User_data, error) {
+    rows, err := db.Query("SELECT id, username, first_name, last_name FROM users WHERE id != ?", current_user_id)
+    if err != nil {
+        log.Printf("Error getting all users: %v", err)
+        return nil, err
+    }
+    defer rows.Close()
+
+    var users []models.User_data
+    for rows.Next() {
+        var user models.User_data
+        // Use pointers for potentially NULL fields if necessary,
+        // but for this app, we assume they are NOT NULL
+        if err := rows.Scan(&user.ID, &user.Username, &user.First_name, &user.Last_name); err != nil {
+            log.Printf("Error scanning user: %v", err)
+            continue
+        }
+        users = append(users, user)
+    }
+    return users, nil
+}
 
 // Corrected: Capitalized to make it public
 func Insert_user(db *sql.DB, usr *models.User_data) error {
@@ -63,4 +86,19 @@ func Create_session(db *sql.DB, user_id int, username string) (string, error) {
         return "", err 
     }
 	return session_token.String(), nil
+}
+
+func Get_user_from_session(db *sql.DB, session_token string) (int, string, error) {
+    var user_id int
+    var username string
+    // Also check if the session is expired
+    err := db.QueryRow(`
+        SELECT user_id, username FROM sessions
+        WHERE session_id = ? AND expiry_date > datetime('now')`,
+        session_token).Scan(&user_id, &username)
+    
+    if err != nil {
+        return 0, "", errors.New("invalid or expired session")
+    }
+    return user_id, username, nil
 }

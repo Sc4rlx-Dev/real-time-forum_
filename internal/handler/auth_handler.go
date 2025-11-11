@@ -61,11 +61,23 @@ func (h *Auth_handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Set the secure session token
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    session_token,
 		Path:     "/",
-		HttpOnly: true,
+		HttpOnly: false, 
 	})
+
+	// --- ADD THIS COOKIE ---
+	// Set the username cookie for the frontend JavaScript to read
+	http.SetCookie(w, &http.Cookie{
+		Name:     "username",
+		Value:    login_data.Username,
+		Path:     "/",
+		HttpOnly: false, // JavaScript CAN see this
+	})
+	// ---------------------
+
 	json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully"})
 }

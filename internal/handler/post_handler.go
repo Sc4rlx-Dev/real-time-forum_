@@ -12,9 +12,23 @@ type Post_handler struct {
 	DB *sql.DB
 }
 
+// UPDATED: Real Authentication Middleware
 func (h *Post_handler) Auth_middleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.Header.Set("X-User-ID", "1")
+		cookie, err := r.Cookie("session_token")
+		if err != nil {
+			http.Error(w, "Unauthorized: No session cookie", http.StatusUnauthorized)
+			return
+		}
+
+		user_id, _, err := repository.Get_user_from_session(h.DB, cookie.Value)
+		if err != nil {
+			http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
+			return
+		}
+		
+		// Add the user ID to the request header for other handlers to use
+		r.Header.Set("X-User-ID", strconv.Itoa(user_id))
 		next.ServeHTTP(w, r)
 	}
 }
