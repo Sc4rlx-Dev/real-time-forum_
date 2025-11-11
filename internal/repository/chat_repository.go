@@ -60,46 +60,43 @@ func Insert_chat_message(db *sql.DB, msg models.Message, sender_id, receiver_id 
 	return err
 }
 
-
 func Get_messages(db *sql.DB, user_id1 int, user_id2 int) ([]models.Message, error) {
-    rows, err := db.Query(`
+	rows, err := db.Query(`
         SELECT id, message, sender_id, receiver_id, created_at
         FROM messages
         WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
         ORDER BY created_at ASC`,
-        user_id1, user_id2, user_id2, user_id1)
-    
-    if err != nil {
-        log.Printf("Error getting messages: %v", err)
-        return nil, err
-    }
-    defer rows.Close()
+		user_id1, user_id2, user_id2, user_id1)
 
-    var messages []models.Message
-    for rows.Next() {
-        var msg models.Message
-        var sender_id, receiver_id int
-        if err := rows.Scan(&msg.ID, &msg.Message, &sender_id, &receiver_id, &msg.Date); err != nil {
-            log.Printf("Error scanning message: %v", err)
-            continue
-        }
-        
-        // We need to set 'From' and 'To' usernames
-        if sender_id == user_id1 {
-            msg.From_username, _ = Get_username_by_id(db, user_id1)
-            msg.To_username, _ = Get_username_by_id(db, user_id2)
-        } else {
-            msg.From_username, _ = Get_username_by_id(db, user_id2)
-            msg.To_username, _ = Get_username_by_id(db, user_id1)
-        }
-        messages = append(messages, msg)
-    }
-    return messages, nil
+	if err != nil {
+		log.Printf("Error getting messages: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var messages []models.Message
+	for rows.Next() {
+		var msg models.Message
+		var sender_id, receiver_id int
+		if err := rows.Scan(&msg.ID, &msg.Message, &sender_id, &receiver_id, &msg.Date); err != nil {
+			log.Printf("Error scanning message: %v", err)
+			continue
+		}
+
+		if sender_id == user_id1 {
+			msg.From_username, _ = Get_username_by_id(db, user_id1)
+			msg.To_username, _ = Get_username_by_id(db, user_id2)
+		} else {
+			msg.From_username, _ = Get_username_by_id(db, user_id2)
+			msg.To_username, _ = Get_username_by_id(db, user_id1)
+		}
+		messages = append(messages, msg)
+	}
+	return messages, nil
 }
 
-// NEW HELPER FUNCTION
 func Get_username_by_id(db *sql.DB, user_id int) (string, error) {
-    var username string
-    err := db.QueryRow("SELECT username FROM users WHERE id = ?", user_id).Scan(&username)
-    return username, err
+	var username string
+	err := db.QueryRow("SELECT username FROM users WHERE id = ?", user_id).Scan(&username)
+	return username, err
 }

@@ -11,13 +11,15 @@ import (
 
 func OPEN_DB() (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", "./storage/database.db")
-	if err != nil { log.Println("Error opening database file:", err)
+	if err != nil {
+		log.Println("Error opening database file:", err)
 		return nil, err
 	}
-	if err = db.Ping(); err != nil { log.Println("Error connecting to the database:", err)
+	if err = db.Ping(); err != nil {
+		log.Println("Error connecting to the database:", err)
 		return nil, err
 	}
-return db, nil
+	return db, nil
 }
 
 func CreateTables(db *sql.DB) error {
@@ -29,5 +31,5 @@ func CreateTables(db *sql.DB) error {
 	if err != nil {
 		return fmt.Errorf("error executing schema: %w", err)
 	}
-return nil
+	return nil
 }

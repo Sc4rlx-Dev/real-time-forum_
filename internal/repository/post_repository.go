@@ -5,7 +5,6 @@ import (
 	"real_time_forum/internal/models"
 )
 
-// Corrected: Capitalized to make it public
 func Insert_post(db *sql.DB, title, content, category string, user_id int) error {
 	_, err := db.Exec(
 		`INSERT INTO posts (title, content, category, user_id) VALUES (?, ?, ?, ?)`,
@@ -13,7 +12,6 @@ func Insert_post(db *sql.DB, title, content, category string, user_id int) error
 	return err
 }
 
-// Corrected: Capitalized to make it public
 func Insert_comment(db *sql.DB, content string, user_id, post_id int) error {
 	_, err := db.Exec(`
 		INSERT INTO comments (content, user_id, post_id) VALUES (?, ?, ?)`,
@@ -21,15 +19,14 @@ func Insert_comment(db *sql.DB, content string, user_id, post_id int) error {
 	return err
 }
 
-// Corrected: Capitalized to make it public
 func Get_all_posts(db *sql.DB) ([]models.Post, error) {
 	rows, err := db.Query(`SELECT p.id, p.title, p.content, p.category, u.username, p.created_at
 		FROM posts p
 		JOIN users u ON p.user_id = u.id
 		ORDER BY p.created_at DESC`)
-	if err != nil { 
-        return nil, err 
-    }
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	var posts []models.Post
@@ -64,5 +61,5 @@ func Get_all_posts(db *sql.DB) ([]models.Post, error) {
 		posts[i].Comments = comments
 	}
 
-	return posts, nil	
+	return posts, nil
 }
