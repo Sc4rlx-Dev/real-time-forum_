@@ -15,11 +15,14 @@ type Auth_handler struct {
 
 func (h *Auth_handler) Register(w http.ResponseWriter, r *http.Request) {
 
-    if err := r.ParseForm(); err != nil { http.Error(w,  "Failed to parse form" , http.StatusBadRequest) ; return}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Failed to parse form", http.StatusBadRequest)
+		return
+	}
 
-    age, _ := strconv.Atoi(r.FormValue("Age"))
+	age, _ := strconv.Atoi(r.FormValue("Age"))
 
-    user_data := models.User_data{
+	user_data := models.User_data{
 		Username:   r.FormValue("Username"),
 		First_name: r.FormValue("First_name"),
 		Last_name:  r.FormValue("Last_name"),
@@ -61,23 +64,22 @@ func (h *Auth_handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set the secure session token
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    session_token,
 		Path:     "/",
-		HttpOnly: false, 
+		HttpOnly: false,
 	})
 
-	// --- ADD THIS COOKIE ---
-	// Set the username cookie for the frontend JavaScript to read
 	http.SetCookie(w, &http.Cookie{
 		Name:     "username",
 		Value:    login_data.Username,
 		Path:     "/",
-		HttpOnly: false, // JavaScript CAN see this
+		HttpOnly: false,
 	})
-	// ---------------------
 
-	json.NewEncoder(w).Encode(map[string]string{"message": "Logged in successfully"})
+	json.NewEncoder(w).Encode(map[string]string{
+		"message":  "Logged in successfully",
+		"username": login_data.Username,
+	})
 }
