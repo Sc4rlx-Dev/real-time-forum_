@@ -97,3 +97,8 @@ func Get_user_from_session(db *sql.DB, session_token string) (int, string, error
 	}
 	return user_id, username, nil
 }
+
+func Delete_session(db *sql.DB, session_token string) error {
+	_, err := db.Exec("DELETE FROM sessions WHERE session_id = ?", session_token)
+	return err
+}
