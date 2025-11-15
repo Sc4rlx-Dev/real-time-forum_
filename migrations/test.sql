@@ -60,3 +60,19 @@ FOREIGN KEY (conversation_id) REFERENCES conversations(id),
 FOREIGN KEY (sender_id) REFERENCES users(id),
 FOREIGN KEY (receiver_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS categories (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+name TEXT NOT NULL UNIQUE
+);
+
+-- Insert some default categories
+INSERT OR IGNORE INTO categories (name) VALUES 
+('General'),
+('Technology'),
+('Sports'),
+('Entertainment'),
+('News'),
+('Gaming'),
+('Music'),
+('Other');
