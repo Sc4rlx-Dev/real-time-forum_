@@ -44,7 +44,17 @@ func (h *Chat_handler) Get_messages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messages, err := repository.Get_messages(h.DB, user_id1, user_id2)
+	// Get pagination parameters
+	before := r.URL.Query().Get("before")
+	limit := 10
+	limitStr := r.URL.Query().Get("limit")
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 50 {
+			limit = l
+		}
+	}
+
+	messages, err := repository.Get_messages_paginated(h.DB, user_id1, user_id2, before, limit)
 	if err != nil {
 		http.Error(w, "Failed to get messages", http.StatusInternalServerError)
 		return
@@ -52,4 +62,18 @@ func (h *Chat_handler) Get_messages(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(messages)
+}
+
+// Get_conversations gets list of conversations with last message
+func (h *Chat_handler) Get_conversations(w http.ResponseWriter, r *http.Request) {
+	user_id, _ := strconv.Atoi(r.Header.Get("X-User-ID"))
+
+	conversations, err := repository.Get_conversations(h.DB, user_id)
+	if err != nil {
+		http.Error(w, "Failed to get conversations", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(conversations)
 }

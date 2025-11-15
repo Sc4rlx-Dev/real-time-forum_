@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"real_time_forum/internal/repository"
 	"strconv"
+	"strings"
 )
 
 type Post_handler struct {
@@ -76,4 +77,47 @@ func (h *Post_handler) Get_posts(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(posts)
+}
+
+func (h *Post_handler) Get_post_by_id(w http.ResponseWriter, r *http.Request) {
+	// Extract post ID from URL path
+	post_id_str := r.URL.Path[len("/api/posts/"):]
+	post_id, err := strconv.Atoi(post_id_str)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	post, err := repository.Get_post_by_id(h.DB, post_id)
+	if err != nil {
+		http.Error(w, "Post not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(post)
+}
+
+func (h *Post_handler) Get_post_comments(w http.ResponseWriter, r *http.Request) {
+	// Extract post ID from URL
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 4 {
+		http.Error(w, "Invalid URL", http.StatusBadRequest)
+		return
+	}
+
+	post_id, err := strconv.Atoi(parts[3])
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	comments, err := repository.Get_comments_by_post(h.DB, post_id)
+	if err != nil {
+		http.Error(w, "Failed to retrieve comments", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(comments)
 }
