@@ -18,12 +18,22 @@ func New_Router(db *sql.DB) http.Handler {
 
 	m.HandleFunc("/api/register", auth_h.Register)
 	m.HandleFunc("/api/login", auth_h.Login)
+	m.HandleFunc("/api/logout", auth_h.Logout)
 	m.HandleFunc("/api/posts", post_h.Get_posts)
 
 	m.HandleFunc("/api/posts/create", post_h.Auth_middleware(post_h.Create_post))
 	m.HandleFunc("/api/comments/add", post_h.Auth_middleware(post_h.Create_comment))
 	m.HandleFunc("/api/users", post_h.Auth_middleware(chat_h.Get_users))
+	m.HandleFunc("/api/conversations", post_h.Auth_middleware(chat_h.Get_conversations))
 	m.HandleFunc("/api/messages/", post_h.Auth_middleware(chat_h.Get_messages))
+	m.HandleFunc("/api/posts/", post_h.Auth_middleware(func(w http.ResponseWriter, r *http.Request) {
+		// Check if it's a request for comments
+		if len(r.URL.Path) > len("/api/posts/") && r.URL.Path[len(r.URL.Path)-9:] == "/comments" {
+			post_h.Get_post_comments(w, r)
+		} else {
+			post_h.Get_post_by_id(w, r)
+		}
+	}))
 
 	m.HandleFunc("/ws", handler.Ws_handler(db))
 
