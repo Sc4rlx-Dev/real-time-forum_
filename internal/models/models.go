@@ -41,3 +41,12 @@ type Message struct {
 	Type          string      `json:"type"`
 	Data          interface{} `json:"data,omitempty"` // For user lists, etc.
 }
+
+type Conversation struct {
+	User_id         int    `json:"user_id"`
+	Username        string `json:"username"`
+	First_name      string `json:"first_name"`
+	Last_name       string `json:"last_name"`
+	Last_message    string `json:"last_message"`
+	Last_message_at string `json:"last_message_at"`
+}
