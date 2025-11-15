@@ -32,7 +32,7 @@ func main() {
 	}
 
 	fmt.Println("Server is starting on http://localhost:8081")
-	err = server.ListenAndServe()
+	err = server.ListenAndServe();
 	if err != nil {
 		log.Fatal("Server failed to start:", err)
 	}
