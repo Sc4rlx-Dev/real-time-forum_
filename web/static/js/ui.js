@@ -258,6 +258,34 @@ export function render_user_list(users, online_users, on_user_click) {
     });
 }
 
+export function render_conversation_list(conversations, online_users, on_user_click) {
+    const user_list_el = document.getElementById('user-list');
+    if (!user_list_el) return;
+    user_list_el.innerHTML = '';
+
+    conversations.forEach(conv => {
+        const is_online = online_users.includes(conv.username);
+        const user_item = create_element('div', 'user-item');
+        
+        const user_info = create_element('div', 'user-info');
+        const username_el = create_element('div', 'username', conv.username);
+        user_info.appendChild(username_el);
+        
+        if (conv.last_message) {
+            const last_msg = create_element('div', 'last-message', 
+                conv.last_message.length > 30 ? conv.last_message.substring(0, 30) + '...' : conv.last_message);
+            user_info.appendChild(last_msg);
+        }
+        
+        const status_indicator = create_element('span', is_online ? 'online' : 'offline');
+        user_item.appendChild(user_info);
+        user_item.appendChild(status_indicator);
+        
+        user_item.onclick = () => on_user_click(conv.username);
+        user_list_el.appendChild(user_item);
+    });
+}
+
 export function render_chat_window(username, messages, on_send_message) {
     const chat_window = document.getElementById('chat-window');
     chat_window.innerHTML = '';

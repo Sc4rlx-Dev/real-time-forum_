@@ -3,6 +3,7 @@ import {
     render_home_page, 
     render_posts,
     render_user_list,
+    render_conversation_list,
     render_chat_window,
     append_message,
     render_register_form,
@@ -16,6 +17,7 @@ import {
     login_user, 
     get_posts,
     get_users,
+    get_conversations,
     get_chat_history,
     get_cookie,
     register_user,
@@ -31,6 +33,7 @@ import {
 } from './websocket.js';
 
 let all_users = [];
+let conversations = [];
 let online_users = [];
 let current_username = null;
 let current_chat_with = null;
@@ -58,8 +61,9 @@ async function show_home_page() {
     hide_loading();
     render_posts(posts, handle_add_comment);
 
-    all_users = await get_users();
-    render_user_list(all_users, online_users, on_user_click);
+    // Load conversations instead of just users
+    conversations = await get_conversations();
+    render_conversation_list(conversations, online_users, on_user_click);
 
     connect_websocket(current_username);
 
@@ -151,11 +155,17 @@ function handle_incoming_message(msg) {
         console.log(`Received message from ${msg.From_username}, but not in active chat.`);
         show_notification(`New message from ${msg.From_username}`, 'info');
     }
+    
+    // Refresh conversation list to update last message
+    get_conversations().then(convs => {
+        conversations = convs;
+        render_conversation_list(conversations, online_users, on_user_click);
+    });
 }
 
 function handle_user_list_update(new_online_users) {
     online_users = new_online_users;
-    render_user_list(all_users, online_users, on_user_click);
+    render_conversation_list(conversations, online_users, on_user_click);
 }
 
 main();

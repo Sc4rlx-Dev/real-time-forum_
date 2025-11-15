@@ -87,6 +87,21 @@ export async function get_chat_history(username) {
     }
 }
 
+export async function get_conversations() {
+    try {
+        const response = await fetch('/api/conversations');
+        if (!response.ok) {
+            console.error('Failed to fetch conversations:', response.statusText);
+            return [];
+        }
+        const conversations = await response.json();
+        return conversations || [];
+    } catch (error) {
+        console.error('Error fetching conversations:', error);
+        return [];
+    }
+}
+
 
 
 export function get_cookie(name) {
@@ -135,9 +150,13 @@ export async function add_comment(post_id, content) {
 }
 
 export async function logout_user() {
-    // Clear session cookies by setting expiry to past date
-    // Note: These are being deleted, so SSL encryption is not required for clearing
-    document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict';
-    document.cookie = 'username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Strict';
-    return true;
+	try {
+		await fetch('/api/logout', {
+			method: 'POST',
+			credentials: 'same-origin'
+		});
+	} catch (error) {
+		console.error('Logout error:', error);
+	}
+	return true;
 }
